@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+  labels:
+    app: string
+spec:
+  containers:
+    - name: string
+      image: string
+
+  # 存储卷
+  volumes:
+    - name: string
+      emptyDir: {}
+    - name: string
+      hostPath:
+        path: /the/path
+    - name: string
+      secret:
+        secretName: string
+        items:
+          - key: string
+            path: string
+    - name: string
+      configMap:
+        name: string
+        items:
+          - key: string
+            path: string
