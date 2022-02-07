@@ -38,26 +38,6 @@ spec:
         limits:
           cpu: string      # cpu核数限制，单位核数，用于docker run --cpu-shares参数
           memory: string   # 内存限制，单位MiB GiB用于docker run --memory参数
-      # 健康检查，三种方式
-      livenessProbe:
-        exec:
-          command:
-            - string
-        httpGet:
-          host: string
-          port: int
-          path: string
-          scheme: string
-          httpHeaders:
-            - name: string
-              value: string
-        tcpSocket:
-          port: int
-        initialDelaySeconds: 0  # 容器完成后，首次探测的时间，单位s
-        timeoutSeconds: 0       # 对容器健康检查，探测等待响应的超时时间设置，单位s，默认为1s
-        periodSeconds: 0        # 对容器健康检查的定期探测时间设置，单位s，默认10s探测一次
-        successThreshold: 0  # 探针的成功的阈值，在达到该次数时，表示成功；默认值为 1，表示只要成功一次，就算成功了
-        failureThreshold: 0  # 表示探针的最大失败次数，如果达到了最大的失败次数，在存活性探针的情况，容器将重新启动；默认值为3
 
   restartPolicy: [ Always | Never | OnFailure ]
   nodeSelector: object  # 选择pod的部署node

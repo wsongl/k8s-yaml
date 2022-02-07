@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+spec:
+  containers:
+    - name: string
+      image: string
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: string
+                operator: [ In | NotIn | DoesNotExist | Exists | Gt | Lt]
+                values:
+                  - string
+                  - string
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - preference:
+            matchExpressions:
+              - key: string
+                operator: [ In | NotIn | DoesNotExist | Exists | Gt | Lt]
+                values:
+                  - string
+                  - string
+          weight: 1  # 权重

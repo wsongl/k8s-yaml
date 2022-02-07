@@ -8,6 +8,10 @@ spec:
   containers:
     - name: string
       image: string
+      volumeMounts:
+        - name: string
+          mountPath: string  # 挂载目录，绝对路径
+          readOnly: boolean  # 默认false
 
   # 存储卷
   volumes:

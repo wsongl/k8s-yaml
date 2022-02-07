@@ -1,0 +1,60 @@
+# ConfigMap定义
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: string
+  namespace: string
+data:
+  key: value
+
+
+# kubectl 创建ConfigMap
+1、通过 --from-file 参数从文件中创建可以指定key的名称，不指定的话，文件名为key，，也可以在一个命令行中创建包含多个key的ConfigMap，语法如下：
+kubectl create configmap <name> --from-file=[key1]source1 --from-file=[key2]source2
+2、通过 --from-file 参数在目录下进行创建，该目录下的每个配置文件名都被设置为key，文件都内容被设置为value，语法如下：
+kubectl create configmap <name> --from-file=<config-files-dir>
+3、使用 --from-literal 时会从文本中进行创建，直接将指定都key#=value#创建为configmap的内容，语法如下：
+kubectl create configmap <name> --from-literal=key1=value1 --from-literal=key2=value2
+
+
+# pod通过环境变量使用configmap
+### env可指定倒入哪些key值，envFrom将configmap中所有定义的key=value自动生成为环境变量
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+spec:
+  containers:
+    - name: string
+      image: string
+      env:
+        - name: string
+          valueFrom:
+            configMapKeyRef:
+              name: string
+              key: string
+      envFrom:
+        - configMapRef:
+            name: string
+
+# pod通过volumeMount使用configmap
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+spec:
+  containers:
+    - name: string
+      image: string
+      volumeMounts:
+        - name: string
+          mountPath: /the/mount/path/
+  volumes:
+    - name: string
+      configMap:
+        name: string
+        items:
+          - key: string
+            path: string
+
+

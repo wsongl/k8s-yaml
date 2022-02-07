@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: string
+  namespace: string
+  labels:
+    app: string
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: string
+      labels:
+        app: string
+    spec:
+      containers:
+        - name: string
+          image: string
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      nodeSelector:  # 选择部署的node节点
+        key: value
+  selector:  # 根据标签，选择应用
+    matchLabels:
+      app: string
+    matchExpressions:
+      - key: string
+        operator: [ In | NotIn | DoesNotExist | Exists ]
+        values:
+          - string
+          - string

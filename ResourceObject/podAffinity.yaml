@@ -1,0 +1,89 @@
+# 参考：https://cn-blogs.cn/archives/8643.html
+# 说明
+# requiredDuringSchedulingIgnoredDuringExecution：强制要求满足
+# preferredDuringSchedulingIgnoredDuringExecution：尽可能满足要求，但不一定强制达到这样的条件
+# pod亲和性操作符：In | NotIn | DoesNotExist | Exists | Gt | Lt
+
+# topologyKey可以使用任意合法的标签key，但出于性能和安全方面，对topologyKey有如下限制：
+# 1、在pod亲和性和requiredDuringScheduling的pod互斥性的定义中，不允许使用空的topologyKey；
+# 2、如果Admission controller包含来LimitPodHardAntiAffinityTopology，那么针对requiredDuringScheduling的pod互斥性定义就被限制为kubernetes.io/hostname，要使用自定义的topologyKey，就要改写或金庸该控制器；
+# 3、在preferredDuringScheduling类型的pod互斥性定义中，空的topologyKey会被解释为kubernetes.io/hostname、failure-domain.beta.kubernetes.io/zone、failure-domain.beta.kubernetes.io/region的组合；
+# 4、如果不是上述情况，就可以采用任意合法的topologyKey了；
+
+
+# Pod Affinity
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+  labels:
+    security: "S1"
+    app: "nginx"
+spec:
+  containers:
+    - name: string
+      image: string
+  affinity:
+    # pod亲和
+    podAffinity:
+      # 强制要求：新pod与security=S1（标签）的pod为同一个zone（标签）
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: kubernetes.io/zone
+          labelSelector:
+            matchExpressions:
+              - key: security
+                operator: In
+                values:
+                  - S1
+          # namespace：选择namespace；省略这设置，表示使用定义affinity/anti-affinity的pod所在的命名空间；如果namespace被设置为空置（""），则表示所有命名空间
+          namespaceSelector:
+            matchExpressions:
+              - key: "default"
+                operator: In
+                values:
+                  - default
+                  - pre
+                  - prod
+      # 尽量满足：新pod与app=nginx（标签）的pod为同一个hostname（标签）
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - nginx
+          weight: 1
+
+    # pod反亲和
+    podAntiAffinity:
+      # 强制要求：新pod与app=nginx（标签）的pod不是一个hostname（标签）
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - nginx
+          # 参考上面的namespace说明
+          namespaceSelector:
+            matchExpressions:
+              - key: "default"
+                operator: In
+                values:
+                  - default
+                  - pre
+                  - prod
+      # 尽量满足：新pod与security=S1（标签）的pod不是一个zone（标签）
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            topologyKey: kubernetes.io/zone
+            labelSelector:
+              matchExpressions:
+                - key: security
+                  operator: In
+                  values:
+                    - S2
+          weight: 1
