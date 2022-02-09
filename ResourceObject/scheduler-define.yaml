@@ -1,0 +1,12 @@
+# 设置自定义调度器
+# 调度器需要通过kubectl proxy来运行
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+spec:
+  containers:
+    - name: string
+      image: string
+  schedulerName: string # 自定义调度器的名字

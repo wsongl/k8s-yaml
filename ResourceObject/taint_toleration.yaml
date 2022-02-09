@@ -20,16 +20,15 @@
 # - 如果剩余的taint中没有NoSchedule效果，但是有PreferNoSchedule效果，则调度器会尝试不把这个pod指派给这个节点；
 # - 如果在剩余的taint中有NoExecute效果，并且这个pod已经在该节点上运行，则会被驱逐；如果没有在该节点上运行，则也不会再被调度到该节点上；
 
-  NoExecute的taint效果，对节点上正在运行的pod有以下影响：
-- 没有设置toleration的pod会被立刻驱逐；
-- 配置了对应的toleration的pod，如果没有为tolerationSeconds赋值，则pod会一直留在这一节点中；
-- 配置了对应toleration的pod，且指定了tolerationSeconds值，则会在指定的时间后驱逐；节点发生故障情况下，系统将会以限速模式驱逐；
+#   NoExecute的taint效果，对节点上正在运行的pod有以下影响：
+# - 没有设置toleration的pod会被立刻驱逐；
+# - 配置了对应的toleration的pod，如果没有为tolerationSeconds赋值，则pod会一直留在这一节点中；
+# - 配置了对应toleration的pod，且指定了tolerationSeconds值，则会在指定的时间后驱逐；节点发生故障情况下，系统将会以限速模式驱逐；
 
-kubernetes会自动给pod添加下面几种toleration：
-- key为node.kubernetes.io/not-ready，并配置tolerationSeconds=300
-- key为node.kubernetes.io/unreachable，并配置tolerationSeconds=300
-以上机制保证了在某些节点发生一些临时性问题时，pod默认能够继续停留在当前节点运行5min等待节点恢复，而不是立即被驱逐，从而避免系统异常波动；
-
+# kubernetes会自动给pod添加下面几种toleration：
+# - key为node.kubernetes.io/not-ready，并配置tolerationSeconds=300
+# - key为node.kubernetes.io/unreachable，并配置tolerationSeconds=300
+# 以上机制保证了在某些节点发生一些临时性问题时，pod默认能够继续停留在当前节点运行5min等待节点恢复，而不是立即被驱逐，从而避免系统异常波动；
 
 
 # toleration
@@ -57,3 +56,11 @@ spec:
       tolerationSeconds: 3600  # 单位秒，当node加上effect=NoExecute的taint，表明pod可以在taint添上后还能在这个node上运行多久，超过该时间，会出发驱逐事件
 
 
+
+# TaintNodesByCondition TaintBasedEvictions
+#  TaintNodesByCondition: 为节点添加NoSchedule效果的污点；
+#  TaintBasedEvictions: 为节点添加NoExecute效果的污点；
+执行过程的完整逻辑，如下：
+1、不断地检查所有Node状态，设置对应的condition；
+2、不断地根据node condition设置对应的taint；
+3、不断地根据taint驱逐node上的pod；

@@ -6,6 +6,11 @@ metadata:
   labels:
     app: string
 spec:
+  strategy:
+    type: [ RollingUpdate ｜ Recreate ]
+    rollingUpdate:  # type=RollingUpdate时，此处才可以这样配置
+      maxSurge: 25%
+      maxUnavailable: 25%
   replicas: 1
   template:
     metadata:
@@ -29,3 +34,22 @@ spec:
         values:
           - string
           - string
+
+
+# Deployment升级
+方式一：kubectl set image deployment/<deploument-name> <container-name>=<image_url>
+方式二：kubectl edit deployment/<deploument-name>，修改镜像版本
+
+kubectl rollout status deployment/<deploument-name>，查看deployment滚动更新过程
+升级过程完整如下：
+1、初始创建deployment时，系统创建一个rs，并按照用户的需求创建3（假设为3个副本）个pod副本；
+2、更新deployment时，系统创建一个新的rs，并将其副本数量扩展到1，然后将旧的rs中pod缩减为2，之后，系统继续按照相同的更新策略对新旧两个rs下的pod进行逐个调整，最后，新rs下pod为3，旧rs下pod为0；
+
+deployment更新策略：
+1、Recreate：设置spec.strategy.type=Recreate，deployment更新时，会杀掉所有正在运行的pod，然后创建新的pod；
+2、RollingUpdate：设置spec.strategy.type=RollingUpdate，deployment会以滚动更新的方式来逐个跟新pod；同时，可以通过设置maxSurge maxUnavailable来控制滚动更新过程；
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 25%
+    maxUnavailable: 25%

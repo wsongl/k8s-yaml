@@ -56,5 +56,3 @@ spec:
         items:
           - key: string
             path: string
-
-

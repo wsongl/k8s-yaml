@@ -1,0 +1,37 @@
+# pod优先级
+使用优先级抢占的调度策略可能会导致某些pod永远无法被成功调度。因此优先级调度不但增加来系统的复杂性，还可能带来额外不稳定的因素。
+因此，一旦发生资源紧张局面，首先考虑集群扩容，如果无法扩容，再考虑优先级调度特性，如结合基于命名空间的资源配额限制来约束
+
+# 设置一个优先级
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: string   # 优先级名字
+value: 10000     # 优先级等级
+globalDefault: false   # 是否是默认等级
+description: "string"  # 描述
+
+
+# pod中设置优先级
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+spec:
+  containers:
+    - name: string
+      image: string
+  priorityClassName: string  # 优先级名字
+
+
+# pod优先级是否抢占
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+spec:
+  containers:
+    - name: string
+      image: string
+  # PreemptLowerPriority：会执行抢占模式；  Never：不会执行抢占模式，会等待系统空出空闲资源；
+  preemptionPolicy: PreemptLowerPriority | Never

@@ -1,0 +1,26 @@
+# pod容灾调度
+skew参数都计算方式：skew[topo]=count[topo]-min(count[topo])，即每个拓扑区域的skew值都为该区域包括的目标pod数量与整个拓扑区域最少pod数量的差，而maxSkew就是最大的skew值。
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+spec:
+  containers:
+    - name: string
+      image: string
+  topologySpreadConstraints:
+    - maxSkew: 1  # 用于指定pod在各个zone上调度时能容忍都最大不均衡数；值越大，表示不均衡调节越大；
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable:  [ ScheduleAnyway | DoNotSchedule ]
+      labelSelector:
+        # matchLabels matchExpressions可以二选一，也可以都选；当两个都选，则两个都要满足；
+        matchLabels:
+          key: value
+        matchExpressions:
+          - key: key
+            operator: In
+            values:
+              - vlue
+
+
