@@ -53,3 +53,23 @@ strategy:
   rollingUpdate:
     maxSurge: 25%
     maxUnavailable: 25%
+
+# Deployment回滚
+# 查看部署历史记录
+kubectl rollout history deployment/<deployment-name>
+# 创建deployment时，使用 --record参数，设置部署记录数量
+# 查看特定的版本详细信息
+kubectl rollout history deployment/<deployment-name> --revision=<Revision>
+# 回退到上一个版本
+kubectl rollout undo deployment/<deployment-name>
+# 回退到指定版本
+kubectl rollout undo deployment/<deployment-name> --to-revision=<Revision>
+
+
+# 暂停和恢复deployment
+# Tip: 在恢复暂停的deployment之前，无法回滚该deployment
+# 对于复杂到deployment配置修改，避免频繁出发deployment到更新操作，先暂停deployment到更新操作，然后修改配置，再恢复一次出发完整到更新操作；
+# 暂停deployment更新操作
+kubectl rollout pause deployment/<deployment-name>
+# 恢复deployment更新操作
+kubectl rollout resume deployment/<deployment-name>

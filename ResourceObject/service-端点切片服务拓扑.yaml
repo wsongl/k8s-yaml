@@ -1,0 +1,73 @@
+
+
+# 端点切片
+
+
+# ------服务拓扑------
+# 使用服务拓扑有以下几个约束条件：
+# 服务拓扑和externalTrafficPolicy=Local上不兼容到，所以一个service不能同时使用这两种特性。在同一个k8s集群中，启用服务拓扑的service和设置externalTrafficPolicy=Local特性的service是可以同时存在的；
+# topologyKeys目前可以设置3个标签："kubernetes.io/hostname" "topology.kubernetes.io/zone" "topology.kubernetes.io/region"
+# topologyKeys必须是有效的标签格式，并且最多定义16个；
+# 如需使用通配符 "*"，则它必须是最后一个值；
+
+# 只将流量路由到相同node的endpoint上，如果node没有可用的endpoint，则将请求丢弃；
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: string
+spec:
+  selector:
+    app: webapp
+  ports:
+    - port: 8080
+  topologyKeys:
+    - "kubernetes.io/hostname"
+
+# 优先将流量路由到相同node到endpoint上，如果node没有可用的endpoint，则将请求路由到任意可用到endpoint；
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: string
+spec:
+  selector:
+    app: webapp
+  ports:
+    - port: 8080
+  topologyKeys:
+    - "kubernetes.io/hostname"
+    - "*"
+
+# 只将流量路由到相同zone或同region的endpoint上，如果没有可用的endpoint，则将请求丢弃；
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: string
+spec:
+  selector:
+    app: webapp
+  ports:
+    - port: 8080
+  topologyKeys:
+    - "topology.kubernetes.io/zone"
+    - "topology.kubernetes.io/region"
+
+# 按同node 同zone 同region的优先级顺序路由流量，如果node zone region都没有可用的endpoint，则将请求路由到集群内任意可用到endpoint上；
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: string
+spec:
+  selector:
+    app: webapp
+  ports:
+    - port: 8080
+  topologyKeys:
+    - "kubernetes.io/hostname"
+    - "topology.kubernetes.io/zone"
+    - "topology.kubernetes.io/region"
+    - "*"
+

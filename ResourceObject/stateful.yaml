@@ -1,0 +1,5 @@
+升级策略（updateStrategy）：RollingUpdate（默认策略） OnDelete Partitioned
+
+RollingUpdate：从序号最大的pod开始重建，每次更新一个pod；
+OnDelete：新的pod不会自动创建，直到用户手动删除旧版本的pod，才出发新建操作；
+Partitioned：用户指定一个序号，stateful中序号大于等于此序号的pod实例会全部被升级，小于此序号的pod实例则保留旧版本不变，即使这些pod被删除、重建，也仍然保持旧版本；

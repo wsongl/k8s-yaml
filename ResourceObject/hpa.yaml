@@ -1,0 +1,100 @@
+---
+# 仅支持基于cpu使用率指标的自动扩缩容
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: string
+spec:
+  scaleTargetRef:  # 目标作用对象，Deployment ReplicationController ReplicaSet
+    apiVersion: apps/v1
+    kind: Deployment
+    name: string
+  minReplicas: 1  # 副本数量最小值
+  maxReplicas: 10 # 副本数量最大值
+  targetCPUUtilizationPercentage: 80  # pod cpu使用率
+#  autoscaling/v1需要预先安装metrics server
+
+
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: string
+spec:
+  scaleTargetRef:  # 目标作用对象，Deployment ReplicationController ReplicaSet
+    apiVersion: apps/v1
+    kind: Deployment
+    name: string
+  minReplicas: 1  # 副本数量最小值
+  maxReplicas: 10 # 副本数量最大值
+  metrics:  # 目标指标值
+    # type：Resource Pods Object External
+    # Resource： cpu memory指标，只允许Utilization AverageValue类型的目标值，对于cpu，target参数中设置averageUtilization来定义平均cpu使用率；对于memory，target参数中设置AverageValue来定义平均内存使用值；
+    # Pods：伸缩对象pod的指标，需要第三方Adapter提供，只允许AverageValue类型的目标值
+    # Object：kubernetes内部对象的指标，需要第三方Adapter提供，只允许Value AverageValue类型的目标值
+    # External：kubernetes外部的指标，需要第三方Adapter提供，只允许Value AverageValue类型的目标值
+
+    # 多个类型的指标，系统将针对每种类型的指标都计算pod副本都目标数量，以最大值为准，进行扩缩容操作；
+    # kubernetes推荐使用类型为Object类型都HPA配置方式，这可以通过使用operator模式，将外部指标通过crd定义为api资源对象来实现；
+      - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: AverageValue
+          averageValue: 2G
+    - type: Pods  # pod指标名为pod-metric-name，在目标指标平均值为1000时出发扩缩容操作；
+      pods:
+        metric:
+          name: pod-metric-name
+        target:
+          type: AverageValue
+          averageValue: 1k
+    - type: Object  # 设置指标名为request-per-second，其值来源于Ingress ingress-route，将目标值设置为2000，即在ingress每秒请求数量达到2000时出发扩缩容操作；
+      object:
+        metric:
+          name: request-per-second
+        describedObject:
+          apiVersion: extensions/v1beta1
+          kind: Ingress
+          name: ingress-route
+        target:
+          type: Value
+          value: 2k
+    - type: Object  # 设置指标名称为http-request，并且该资源对象具有标签verb=GET，在指标平均值达到500时，出发扩缩容操作；
+      object:
+        metric:
+          name: "http-request"
+          selector: "verb=GET"
+        target:
+          type: AverageValue
+          averageValue: 500
+    - type: External  # 设置指标名称为queue-message-ready，具有queue=worker_taks标签，在目标指标平均值为30时，触发自动扩缩容操作；
+      # 使用外部服务都指标时，要安装和部署能够对接到kubernetes HPA模型都监控系统
+      external:
+        metric:
+          name: queue-message-ready
+          selector: "queue=worker_taks"
+        target:
+          type: AverageValue
+          averageValue: 30
+
+
+# 水平扩缩容
+# 基于cpu使用率自动pod扩缩容功能
+# HPA控制器基于master的kube-controller-manager服务启动参数 --horizontal-pod-autoscaler-sync-period 定义的探测周期（默认为15s），周期性的探测监测目标pod的资源性能指标
+
+# k8s HPA当前有以下两个版本：
+# 1、autoscaling/v1 仅支持基于cpu使用率指标的自动扩缩容
+# 2、autoscaling.v2 支持基于内存使用率指标、自定义指标及外部指标的自动扩缩容，并且进一步扩展以支持多指标缩放能力，当定义来多个指标时，hpa会根据每个指标进行计算，其中缩放幅度最大的指标会被采纳；
+
+# 扩缩容算法 P212
+
+
+
+

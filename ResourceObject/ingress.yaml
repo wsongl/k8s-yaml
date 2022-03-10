@@ -1,0 +1,174 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: string
+spec:
+  rules:
+    - host: www.example.com  # 域名，可选配置
+      http:
+        paths:
+          - path: /demo
+            # ImplementationSpecific，系统默认，由ingressClass控制器提供具体实现；
+            # Exact 精确匹配url路径，区分大小些；
+            # Prefix 匹配url路径的前缀，区分大小写；exact类型有咸鱼prefix类型匹配；
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: string
+                port:
+                  number: int
+
+
+# 后端设置
+# 后端不是service时，设置为资源对象
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: string
+spec:
+  defaultBackend:  # 默认转发
+    resource:
+      apiGroup: k8s.example.com
+      kind: StorageBucket
+      name: static-assets
+  rules:
+    - http:
+        paths:
+          - path: /icon
+            pathType: ImplementationSpecific
+            backend:  # /icon时的转发
+              resource:
+                apiGroup: k8s.example.com
+                kind: StorageBucket
+                name: icon-assets
+
+
+# host通配符
+# foo.bar.com  *.bar.com
+# 仅支持一层dns匹配；a.b.bar.com不能匹配*.bar.com
+
+
+# IngressClass
+# ingress控制器
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: string
+spec:
+  controller: example.com/ingress-controller
+  parameters:
+    apiGroup: k8s.example.com
+    kind: IngressParameters
+    name: external-lb
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: string
+  annotations:
+    # 设置默认IngressClass控制器
+    # 如果设置了多个默认控制器，则创建ingress时，必须指明ingressClassName，否则不知道使用那个
+    ingressclass.kubernetes.io/is-default-class: true
+spec:
+  ingressClassName: external-lb
+  rules:
+    - host: www.example.com
+      http:
+        paths:
+          - path: /demo
+            pathType: Prefix
+            backend:
+              service:
+                name: string
+                port:
+                  number: int
+
+
+# 不使用域名的转发规则
+# 任意<ingress-controller-ip>/demo的转发，都将转发到此后端服务
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: string
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /demo
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: string
+                port:
+                  number: int
+
+
+# 示例：多种情况下
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: string
+spec:
+  defaultBackend:
+    service:
+      name: string
+      port:
+        number: int
+  rules:
+    - host: www.example.com
+      http:
+        paths:
+          - path: /demo
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: string
+                port:
+                  number: int
+          - path: /icon
+            pathType: Exact
+            backend:
+              service:
+                name: string
+                port:
+                  number: int
+    - host: foo.example.com
+      http:
+        paths:
+          - path: /nginx
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: string
+                port:
+                  number: int
+
+
+# tls安全设置
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: string
+spec:
+  tls:
+    - hosts:
+        - www.example.com
+      secretName: xxx-secret-name
+  rules:
+    - host: www.example.com
+      http:
+        paths:
+          - path: /demo
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: string
+                port:
+                  number: int
