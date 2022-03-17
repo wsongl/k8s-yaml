@@ -1,0 +1,80 @@
+## resource quota定义示例
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: string
+  namespace: xxx
+spec:
+  hard:
+    # 计算资源配额
+    cpu: "10"
+    requests.cpu: "10"
+    limits.cpu: "20"
+    memory: 10Gi
+    request.memory: 10Gi
+    limits.memory: 20Gi
+
+    # 存储资源配额
+    requests.storage: 500Gi
+    persistentvolumeclaims: 20
+    xx.storageclass.storage.k8s.io/requests.storage: 100Gi    # 与xx（storageClassName）相关的请求存储总量都不能超过该值。
+    xx.storageclass.storage.k8s.io/persistentvolumeclaims: 10 # 与xx（storageClassName）相关的pvc数量不超过该值。
+    ephemeral-storage: 1Gi             # 临时存储的总量限制
+    requests.ephemeral-storage: 1Gi
+    limits.ephemeral-storage: 2Gi
+
+    # 对象数量资源配额
+    pods: "10"
+    configmaps: "10"
+    secrets: "10"
+    replicationcontrollers: "10"
+    resourcequota: "10"
+    service: "10"
+    service.loadbalancers: "10"
+    services.nodeports: "10"
+
+    # 不加作用域，表示对整个命名空间有效；
+    # 加作用域，只对匹配的作用域有效；
+    scopes:
+    - BestEffort
+    - NotBestEffort
+    - Terminating
+    - NotTerminating
+    - PriorityClass
+    # 下面例子中，还有对指定pod优先级类的作用域
+
+# kubectl describe quota xxx --namespace=xx-space
+
+
+
+## 举例：使用resource quota，对引用指定优先级类的pod匹配
+# 创建pod
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+spec:
+  containers:
+    - name: string
+      image: string
+  priorityClassName: xxx
+
+# 创建resource quota
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: string
+spec:
+  hard:
+    cpu: "10"
+    memory: 10Gi
+    pods: "10"
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values: ["xxx"]
+

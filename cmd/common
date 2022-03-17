@@ -27,7 +27,8 @@ kubectl config view
 # 设置当前运行环境
 kubectl config use-context ctx-name
 
-
+# 查看资源使用释义
+kubectl explain quota
 
 
 

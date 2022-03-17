@@ -1,0 +1,77 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: xx
+  namespace: xx
+subjects:
+- kind: User
+  name: xx-username
+  apiGroup: rbac.authorization.k8s.io
+- kind: Group
+  name: xx-group
+  apiGroup: rbac.authorization.k8s.io
+- kind: ServiceAccount
+  name: xx-sa
+  namespace: xx
+roleRef:
+  kind: Role                            # 这里必须是Role或者ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: xx                              # 这里的名称必须与你想要绑定的 Role 或 ClusterRole 名称一致
+
+# subjects
+# 目标主体可以是用户（User） 用户组（Group） ServiceAccount
+# "system:" 开头的用户，是系统用户，自定义用户不可以使用此前缀
+# "system:" 开头的用户组，是系统用户组，自定义用户不可以使用此前缀
+# ServiceAccount在k8s中的用户名会被设置成 "system:serviceaccount:"为前缀的名称，其所属的组名会被设置成以 "system:serviceaccounts:"为前缀的名称
+
+## 常见的角色绑定
+# 为用户"wsongl@example.com"授权
+subjects:
+- kind: User
+  name: "wsongl@example.com"
+  apiGroup: rbac.authorization.k8s.io
+
+# 为组"front-group"授权
+subjects:
+- kind: Group
+  name: "front-group"
+  apiGroup: rbac.authorization.k8s.io
+
+# 为kube-system命名空间中的默认ServiceAccount授权
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kube-system
+
+# ** 为qa命名空间中的所有ServiceAccount授权 **
+subjects:
+- kind: Group
+  name: system:serviceaccounts:qa
+  apiGroup: rbac.authorization.k8s.io
+
+# ** 为所有命名空间中的所有ServiceAccount授权 **
+subjects:
+- kind: Group
+  name: system:serviceaccounts
+  apiGroup: rbac.authorization.k8s.io
+
+# 为所有已认证用户授权
+subjects:
+- kind: Group
+  name: system:authenticated
+  apiGroup: rbac.authorization.k8s.io
+
+# 为所有未认证用户授权
+subjects:
+- kind: Group
+  name: system:unauthenticated
+  apiGroup: rbac.authorization.k8s.io
+
+# 为全部用户授权
+subjects:
+- kind: Group
+  name: system:authenticated
+  apiGroup: rbac.authorization.k8s.io
+- kind: Group
+  name: system:unauthenticated
+  apiGroup: rbac.authorization.k8s.io

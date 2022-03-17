@@ -3,6 +3,7 @@
 因此，一旦发生资源紧张局面，首先考虑集群扩容，如果无法扩容，再考虑优先级调度特性，如结合基于命名空间的资源配额限制来约束
 
 # 设置一个优先级
+---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
@@ -13,6 +14,7 @@ description: "string"  # 描述
 
 
 # pod中设置优先级
+---
 apiVersion: v1
 kind: Pod
 metadata:
@@ -25,6 +27,7 @@ spec:
 
 
 # pod优先级是否抢占
+---
 apiVersion: v1
 kind: Pod
 metadata:

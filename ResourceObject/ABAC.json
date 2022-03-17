@@ -1,0 +1,57 @@
+{
+    "apiVersion": "abac.authorization.kubernetes.io/v1beta1",
+    "kind": "Policy",
+    "spec": {
+        // 这是注释： 允许用户alice对所有资源做任意操作
+        "user": "alice",
+        "namespace": "*",
+        "resource": "*",
+        "apiGroup": "*"
+    }
+}
+
+// 下面内容，只写spec字段值，其他字段不变
+
+// kubelet可以读取任意pod
+{
+    "user": "kubelet",
+    "namespace": "*",
+    "resource": "pods",
+    "readonly": true
+}
+
+// kubelet可以读取event对象
+{
+    "user": "kubelet",
+    "namespace": "*",
+    "resource": "events"
+}
+
+// 用户bob只能读取projectCaribou中的pod
+{
+    "user": "bob",
+    "namespace": "projectCaribou",
+    "resource": "pods",
+    "readonly": true
+}
+
+// 任意用户都可以对非资源类路径进行只读请求
+{
+    "group": "system:authenticated",
+    "readonly": true,
+    "nonResourcePath": "*"
+}
+{
+    "group": "system:unauthenticated",
+    "readonly": true,
+    "nonResourcePath": "*"
+}
+
+
+// kube-system命名空间中的Service Account “default”具有全部权限
+{
+    "user": "system:serviceaccount:kube-system:default",
+    "namespace": "*",
+    "resource": "*",
+    "apiGroup": "*"
+}

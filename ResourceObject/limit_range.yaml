@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: string
+  namespace: limit-namespace-name
+spec:
+  limits:
+  - type: Pod
+    max:               # pod中所有容器的limits值的总和上限
+      cpu: "4"
+      memory: 2Gi
+    min:               # pod中所有容器的requests值的总和下限
+      cpu: 200m
+      memory: 125Mi
+    maxLimitRequestRatio:  # 限制了pod中所有容器的limits值总和与requests值总和的比例上限
+      cpu: 3
+      memory: 2
+  - type: Container
+    default:           # default limit，是pod中所有未指定limits值的容器的默认limits值
+      cpu: 200m
+      memory: 125Mi
+    defaultRequest:    # default request，是pod中所有未指定requests值的容器的默认requests值
+      cpu: 200m
+      memory: 125Mi
+    max:               # 是容器的limits的上线
+      cpu: "4"
+      memory: 2Gi
+    # 如果设置了此项min，这所有容器都必须设置requests，否则创建过程会报错
+    # 如果pod容器的requests在未配置时，可以使用默认值defaultRequest；
+    # 如果默认值defaultRequest未配置，那么默认等于该容器的limits；如果limits也未定义，就会报错；
+    min:               # 是容器的requests的下限
+      cpu: 200m
+      memory: 125Mi
+    maxLimitRequestRatio:  # 限制了容器中limits与requests的比例上限
+      cpu: 3
+      memory: 2
+
+# kubectl describe limits limitrange-name --namespace=xx

@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: string
+spec:
+  containers:
+    - name: string
+      image: string
+      volumeMounts:
+        - mountPath: /hugepage
+          name: hugepage-name
+      resources:
+        limits:
+          # huge page的requests limits必须相同，即申请固定大小的。
+          huagepage-2Mi: 100Mi  # 表示2MiB规格的大内存页，最多有100Mi
+          memory: 100Mi
+          cpu: 0.2
+        requests:
+          memory: 50Mi
+          cpu: 0.1
+  volumes:
+    - name: huagepage-name
+      emptyDir:
+        medium: HugePage
+    
+
+    # 如果需要设置更大的Huge page，则可以在pod的volume声明中用如下方式表明
+    # 申请2Mi的大内存页
+    - name: huagepage-2mi
+      emptyDir:
+        medium: HugePage-2Mi
+    # 申请1Gi的大内存页
+    - name: huagepage-1gi
+      emptyDir:
+        medium: HugePage-1Gi

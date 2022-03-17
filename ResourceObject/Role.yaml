@@ -1,0 +1,50 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: xx
+  namespace: xx
+rules:
+- apiGroup: [""]        # 资源对象api组列表，如core extensions apps batch
+  resources: ["pods"]   # 需要操作的资源类型列表，如pods deployments jobs
+  resourceNames: ["xx1", "xx2"]    # 具体到资源对象的实例名称，没有需要则不用写该字段
+  verbs: ["get", "watch", "list"]  # 允许对资源对象操作的方法列表，如get watch list delete replace patch
+
+
+
+## 常见Role
+# 允许读取pod资源对象（属于Core Api Group）的信息
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+
+# 允许读取extensions和apps两个Api Group中deployment资源对象的信息
+- apiGroups: ["extensions", "apps"]
+  resources: ["deployments"]
+  verbs: ["get", "watch", "list", "create", "update", "patch", "delete"]
+
+# 允许读取pod资源对象（属于Core Api Group）的信息
+# 允许读写batch和extensions两个Api Group中job资源对象的信息
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["extensions", "batch"]
+  resources: ["jobs"]
+  verbs: ["get", "watch", "list", "create", "update", "patch", "delete"]
+
+# 允许读取名为“my-config”的ConfigMap资源对象的信息
+# 必须绑定到一个RoleBinding来限制一个命名空间中的特定ConfigMap实例
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames: ["my-config"]
+  verbs: ["get"]
+
+# 读取Node资源对象（属于Core Api Group）的信息
+# 由于node是集群级别的资源对象，所以必须存在于ClusterRole中，并使用ClusterRoleBinding进行绑定
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "watch", "list"]
+
+# 允许对非资源类型的/healthz端点（endpoint）及其所有子路径进行GET和POST操作
+# 必须使用ClusterRole和ClusterRoleBinding
+- nonResourceURLS: ["/healthz", "/healthz/*"]
+  verbs: ["get", "post"] # 

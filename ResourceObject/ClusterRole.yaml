@@ -1,0 +1,46 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  # 作用域是整个集群，所以不用设置namespace
+  name: xx
+  labels:
+    rbac.example.com/aggregation-pod: "true"  # 设置标签，如果不被其他ClusterRole聚合，一般可不写
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "watch", "list"]
+
+
+## 聚合ClusterRole（引用其他的ClusterRole权限规则）
+---
+# 此ClusterRole包含rbac.example.com/aggregation-pod=true rbac.example.com/aggregation-service=true的所有ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  # 作用域是整个集群，所以不用设置namespace
+  name: xx
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.example.com/aggregation-pod: "true"      # 匹配其他clusterRole上的标签
+  - matchLabels:
+      rbac.example.com/aggregation-service: "true"  # 匹配其他clusterRole上的标签
+rules: []   # 再添加其他rule规则，不知道可行不，未实验。网上说此rules会根据上面的匹配，自动生成rules，所以自定义的rule写上去，会不会被覆盖，尚不确认
+# 咨询了一个大佬，如果rules上自定义规则和聚合的有冲突，以此rules为主。但也未实验
+
+
+## 一个很有意思的聚合使用方式
+# 场景举例：
+# 为自定义资源对象（crontabs-xx）设置只读权限，并加入内置的名为view的ClusterRole中。
+# 则只需新建一个ClusterRole，并设置标签为“rbac.authorization.k8s.io/aggregate-to-view: true”，即可将相关授权规则添加到view的权限列表中；
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: xx
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+rules:
+- apiGroups: ["xx.example.com"]
+  resources: ["crontabs-xx"]
+  verbs: ["get", "watch", "list"]

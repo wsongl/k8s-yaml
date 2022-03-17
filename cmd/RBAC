@@ -1,0 +1,88 @@
+## 创建Role ，在namespace范围内设置授权规则
+# 创建名为“pod-reader”的Role，允许对pod进行 get watch list操作
+kubectl create role pod-reader --resource=pods --verd=get --verd=watch --verd=list
+kubectl create role pod-reader --resource=pods --verd=get,watch,list
+
+# 创建名为“pod-reader”的Role，允许对特定名称对pod进行get操作
+kubectl create role pod-reader --resource=pods --resource-name="pod-1" --resource-name="pod-2" --verd=get
+
+# 创建名为“foo”的Role，允许对API Group “apps”中的replicaset进行get watch list操作
+kubectl create role foo --resource=replicasets.apps --verd=get,watch,list
+
+# 创建名为“foo”的Role，允许对pod及其子资源“status”进行get watch list操作
+kubectl create role foo --resource=pods,pods/status --verd=get,watch,list
+
+# 创建名为“foo”的Role，允许对特定名称的lease资源进行get list watch update操作
+kubectl create role foo --verd=get,list,watch,update --resource=lease --resource-name="my-lease"
+
+
+
+## 创建RoleBinding ，在namespace范围内设置授权规则
+# 在命名空间acme中为用户“bob”授权Cluster “admin”
+kubectl create rolebinding wsl-binding --clusterrole=admin --user=bob --namespace=acme
+
+# 在命名空间acme中为ServiceAccount “myapp”授权ClusterRole “view”
+kubectl create rolebinding wsl-binding --clusterrole=view --serviceaccount=acme:myapp --namespace=acme
+
+# 在命名空间acme中为命名空间mynamespace中的ServiceAccount “myapp”授权ClusterRole “view”
+kubectl create rolebinding wsl-binding --clusterrole=view --serviceaccount=mynamespace:myapp --namespace=acme
+
+
+
+
+## 创建ClusterRole
+# 创建名为“pod-reader”的clusterRole，允许对所有命名空间中的pod进行get watch list操作
+kubectl create clusterrole pod-reader --verd=get,watch,list --resource=pods
+
+# 建名为“pod-reader”的clusterRole，允许对特定名称（resouceNames）的pod进行get操作
+kubectl create clusterrole --verd=get --resource=pods --resource-name="xx-name1" --resource-name="xx-name2"
+
+# 建名为“foo”的clusterRole，允许对API Group “apps”中的replicaset进行get watch list操作
+kubectl create clusterrole --verd=get,watch,list --resource=replicasets.apps
+
+# 建名为“foo”的clusterRole，允许对pod及其子资源“status”进行get操作
+kubectl create clusterrole foo --verd=get --resource=pods,pods/status
+
+# 建名为“foo”的clusterRole，允许对非资源类型的url进行get操作
+kubectl create clusterrole foo --verd=get --non-resource-url=/logs/*
+
+# 建名为“monitoring”的clusterRole，通过aggregationRule设置其聚合规则
+kubectl create clusterrole monitoring --aggregation-rule="rbac.example.com/aggregate-to-monitoring=true"
+
+
+
+## 创建ClusterRoleBinding
+# 在集群范围内为用户root授权ClusterRole “cluster-admin”
+kubectl create clusterrolebinding xx-crb --clusterrole=cluster-admin --user=root
+
+# 在集群范围内为用户“system:kube-proxy”授权ClusterRole "system:node-proxier"
+kubectl create clusterrolebinding xx-crb --clusterrole=system:node-proxier --user=system:kube-proxy
+
+# 在集群范围内为命名空间acme中的ServiceAccount “myapp”授权ClusterRole “view”
+kubectl create clusterrolebinding xx-crb --clusterrole=view --serviceaccount=acme:myapp
+
+
+
+## kubectl auth reconcile
+# 这个不是很理解，后面待了解
+
+
+
+根据安全原则的授权方法，从最安全到最不安全，顺序如下：
+1、为应用专属的ServiceAccount赋权
+# 这个应用需要在pod的定义中指定一个ServiceAccount
+kubectl create rolebinding xx-rb --clusterrole=view --serviceaccount=my-sa:my-sa --namespace=my-namespace
+
+2、为一个命名空间中名为default的ServiceAccount授权
+# 如果应用中没有指明ServiceAccount，系统则将为其设置名为“default”的ServiceAccount。
+kubectl create rolebinding xx-rb --clusterrole=view --serviceaccount=my-ns:default --namespace=my-ns
+
+3、为命名空间中的所有ServiceAccount都授予同一个权限
+kubectl create rolebinding xx-rb --clusterrole=view --group=system:serviceaccounts:my-ns --namespace=my-ns
+
+4、为集群范围内的所有ServiceAccount都授予一个有限的权限（不推荐）
+kubectl create clusterrolebinding xx-crb --clusterrole=view --group=system:serviceaccounts
+
+5、为所有ServiceAccount都授予超级用户权限（强烈不推荐）
+kubectl create clusterrolebinding xx-crb --clusterrole=cluster-admin --group=system:serviceaccounts
+
