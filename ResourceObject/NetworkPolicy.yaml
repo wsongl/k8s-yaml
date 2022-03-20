@@ -1,0 +1,155 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: default
+spec:
+  podSelector:   # 定义该网络策略作用的 pod 范围
+    matchLabels:
+      role: db
+  policyTypes:   # 网络策略类型，包括 Ingress Egress两种，用于设置目标pod的入站和出站的网络限制。
+  # 如未指定类型，系统默认会设置 Ingress 类型；若设置了 egress 策略，则系统自动设置 Egress 类型。
+  - Ingress
+  - Egress
+
+  ingress:   # 定义允许访问目标pod的入站白名单规则，满足from条件的客户端才能访问ports定义的目标pod端口号
+  - from:
+    - ipBlock:  # 设置ip地址范围作为目标（ingress 或 egress）允许网络访问
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector: # 设置命名空间中的全部pod作为目标（ingress 或 egress）允许网络访问
+        matchLabels:
+          project: myproject
+    - podSelector: # 设置`同一命名空间`选中的pod作为目标（ingress 或 egress）允许网络访问
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:   # 定义目标pod允许访问的出站白名单规则，目标pod仅允许访问满足to条件的服务端ip范围和ports定义的端口号
+  - to:
+    - ipBlock:   # 也可是使用上述from字段下的namespaceSelector podSelector方式
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+
+
+
+### 举例
+---
+## 在from中同时设置namespaceSelector和podSelector，
+## 该策略允许从拥有user=alice标签的命名空间中拥有role=client的pod发起访问。
+...
+ingress:
+- from:
+  - namespaceSelector:
+      matchLabels:
+        user: alice
+    podSelector:
+      matchLabels:
+        role: client
+
+---
+## 在from中分别设置namespaceSelector和podSelector，
+## 该策略既允许从拥有user=alice标签的命名空间中的任意pod发起访问，
+## 也允许从当前命名空间中拥有role=client的pod发起访问。
+...
+ingress:
+- from:
+  - namespaceSelector:
+      matchLabels:
+        user: alice
+  - podSelector:
+      matchLabels:
+        role: client
+
+
+## 默认网络策略
+## 默认禁止ingress访问，该策略禁止任意客户端访问该命名空间中的任意pod，起隔离访问作用。
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: xx
+spec:
+  policyTypes:
+  - Ingress
+  podSelector: {}
+
+## 默认允许ingress访问，该策略允许任意客户端访问该命名空间中的任意pod。
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all
+  namespace: xx
+spec:
+  policyTypes:
+  - Ingress
+  podSelector: {}
+  ingress:
+  - {}
+
+## 默认禁止egress访问，该策略禁止该该命名空间中的所有pod访问任意外部服务。
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: xx
+spec:
+  policyTypes:
+  - Egress
+  podSelector: {}
+
+## 默认允许egress访问，该策略允许该命名空间中的所有pod访问任意外部服务。
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all
+  namespace: xx
+spec:
+  policyTypes:
+  - Egress
+  podSelector: {}
+  egress:
+  - {}
+
+## 默认同时禁止ingress和egress访问。
+## 该策略禁止任意客户端访问该命名空间中的任意pod，
+## 同时禁止该命名空间中的所有pod访问任意外部服务。
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: xx
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  podSelector: {} 
+
+## 默认同时允许ingress和egress访问。
+## 该策略允许任意客户端访问该命名空间中的任意pod，
+## 同时允许该命名空间中的所有pod访问任意外部服务。
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: xx
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  podSelector: {}
+  ingress:
+  - {}
+  egress:
+  - {}
